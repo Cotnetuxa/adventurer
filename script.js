@@ -36,7 +36,12 @@ const monsters = [
   {
     name: "dragon",
     level: 20,
-    health: 300
+    health: 300  
+  },
+  {
+name: "sea serpant",
+    level:40,
+    health:750
   }
 ]
 const locations = [

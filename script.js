@@ -9,6 +9,8 @@ let inventory = ["stick"];
 const button1 = document.querySelector('#button1');
 const button2 = document.querySelector("#button2");
 const button3 = document.querySelector("#button3");
+const button4 = document.querySelector("#button4"); 
+button4.style.display="none";
 const text = document.querySelector("#text");
 const xpText = document.querySelector("#xpText");
 const healthText = document.querySelector("#healthText");
@@ -35,13 +37,13 @@ const monsters = [
   },
   {
     name: "dragon",
-    level: 20,
-    health: 300  
+    level: 30,
+    health: 700  
   },
   {
-name: "sea serpant",
-    level:40,
-    health:750
+name: "mount lion",
+    level:14,
+    health:150
   }
 ]
 const locations = [
@@ -59,8 +61,8 @@ const locations = [
   },
   {
     name: "cave",
-    "button text": ["Fight slime", "Fight fanged beast", "Go to town square"],
-    "button functions": [fightSlime, fightBeast, goTown],
+    "button text": ["Fight slime", "Fight fanged beast", "Go to town square","fight new monster"],
+    "button functions": [fightSlime, fightBeast, goTown, fightNew],
     text: "You enter the cave. You see some monsters."
   },
   {
@@ -105,9 +107,11 @@ function update(location) {
   button1.innerText = location["button text"][0];
   button2.innerText = location["button text"][1];
   button3.innerText = location["button text"][2];
+  button4.innerText = location["button text"][3];
   button1.onclick = location["button functions"][0];
   button2.onclick = location["button functions"][1];
   button3.onclick = location["button functions"][2];
+   button4.onclick = location["button functions"][3];
   text.innerHTML = location.text;
 }
 
@@ -120,6 +124,7 @@ function goStore() {
 }
 
 function goCave() {
+button4.style.display="inline";
   update(locations[2]);
 }
 
@@ -174,7 +179,11 @@ function fightSlime() {
 function fightBeast() {
   fighting = 1;
   goFight();
+  
 }
+function fightNew() {
+  fighting = 3;
+  goFight();
 
 function fightDragon() {
   fighting = 2;

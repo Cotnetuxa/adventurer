@@ -10,7 +10,7 @@ const button1 = document.querySelector('#button1');
 const button2 = document.querySelector("#button2");
 const button3 = document.querySelector("#button3");
 const button4 = document.querySelector("#button4"); 
-button4.style.display="none";
+button4.style.display = 'none';
 const text = document.querySelector("#text");
 const xpText = document.querySelector("#xpText");
 const healthText = document.querySelector("#healthText");
@@ -183,6 +183,7 @@ function fightBeast() {
 }
 function fightNew() {
   fighting = 3;
+  button4.style.display = 'none';
   goFight();
 
 function fightDragon() {

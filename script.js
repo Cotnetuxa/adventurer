@@ -61,7 +61,7 @@ const locations = [
   },
   {
     name: "cave",
-    "button text": ["Fight slime", "Fight fanged beast", "Go to town square", "fight new monster"],
+    "button text": ["Fight slime", "Fight fanged beast", "Go to town square", "fight mount lion"],
     "button functions": [fightSlime, fightBeast, goTown, fightNew],
     text: "You enter the cave. You see some monsters."
   },

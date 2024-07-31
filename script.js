@@ -61,7 +61,7 @@ const locations = [
   },
   {
     name: "cave",
-    "button text": ["Fight slime", "Fight fanged beast", "Go to town square","fight new monster"],
+    "button text": ["Fight slime", "Fight fanged beast", "Go to town square", "fight new monster"],
     "button functions": [fightSlime, fightBeast, goTown, fightNew],
     text: "You enter the cave. You see some monsters."
   },
@@ -124,7 +124,7 @@ function goStore() {
 }
 
 function goCave() {
-button4.style.display="inline";
+button4.style.display = 'inline';
   update(locations[2]);
 }
 
@@ -185,7 +185,7 @@ function fightNew() {
   fighting = 3;
   button4.style.display = 'none';
   goFight();
-
+}
 function fightDragon() {
   fighting = 2;
   goFight();

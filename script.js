@@ -117,10 +117,12 @@ function update(location) {
 }
 
 function goTown() {
+button4.style.display = 'none';
   update(locations[0]);
 }
 
 function goStore() {
+button4.style.display = 'none';
   update(locations[1]);
 }
 
@@ -174,11 +176,13 @@ function sellWeapon() {
 
 function fightSlime() {
   fighting = 0;
+  button4.style.display = 'none';
   goFight();
 }
 
 function fightBeast() {
   fighting = 1;
+  button4.style.display = 'none';
   goFight();
   
 }
@@ -189,6 +193,7 @@ function fightNew() {
 }
 function fightDragon() {
   fighting = 2;
+  button4.style.display = 'none';
   goFight();
 }
 

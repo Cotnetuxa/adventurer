@@ -5,10 +5,13 @@ let currentWeapon = 0;
 let fighting;
 let monsterHealth;
 let inventory = ["stick"];
+let hasSoldier = false;
+let soldierHealth = 100;
 
 const button1 = document.querySelector('#button1');
 const button2 = document.querySelector("#button2");
 const button3 = document.querySelector("#button3");
+const button4 = document.querySelector("#button4");
 const text = document.querySelector("#text");
 const xpText = document.querySelector("#xpText");
 const healthText = document.querySelector("#healthText");
@@ -16,12 +19,15 @@ const goldText = document.querySelector("#goldText");
 const monsterStats = document.querySelector("#monsterStats");
 const monsterName = document.querySelector("#monsterName");
 const monsterHealthText = document.querySelector("#monsterHealth");
+const soldierHealthText = document.querySelector("#soldierHealth");
+
 const weapons = [
   { name: 'stick', power: 5 },
   { name: 'dagger', power: 30 },
   { name: 'claw hammer', power: 50 },
   { name: 'sword', power: 100 }
 ];
+
 const monsters = [
   {
     name: "slime",
@@ -38,7 +44,8 @@ const monsters = [
     level: 20,
     health: 300
   }
-]
+];
+
 const locations = [
   {
     name: "town square",
@@ -48,8 +55,8 @@ const locations = [
   },
   {
     name: "store",
-    "button text": ["Buy 10 health (10 gold)", "Buy weapon (30 gold)", "Go to town square"],
-    "button functions": [buyHealth, buyWeapon, goTown],
+    "button text": ["Buy 10 health (10 gold)", "Buy weapon (30 gold)", "Buy soldier (100 gold)", "Go to town square"],
+    "button functions": [buyHealth, buyWeapon, buySoldier, goTown],
     text: "You enter the store."
   },
   {
@@ -60,14 +67,14 @@ const locations = [
   },
   {
     name: "fight",
-    "button text": ["Attack", "Dodge", "Run"],
-    "button functions": [attack, dodge, goTown],
+    "button text": ["Attack", "Defend", "Run"],
+    "button functions": [attack, defend, goTown],
     text: "You are fighting a monster."
   },
   {
     name: "kill monster",
     "button text": ["Go to town square", "Go to town square", "Go to town square"],
-    "button functions": [goTown, goTown, ],
+    "button functions": [goTown, goTown, goTown],
     text: 'The monster screams "Arg!" as it dies. You gain experience points and find gold.'
   },
   {
@@ -81,12 +88,6 @@ const locations = [
     "button text": ["REPLAY?", "REPLAY?", "REPLAY?"], 
     "button functions": [restart, restart, restart], 
     text: "You defeat the dragon! YOU WIN THE GAME! &#x1F389;" 
-  },
-  {
-    name: "easter egg",
-    "button text": ["2", "8", "Go to town square?"],
-    "button functions": [pickTwo, pickEight, goTown],
-    text: "You find a secret game. Pick a number above. Ten numbers will be randomly chosen between 0 and 10. If the number you choose matches one of the random numbers, you win!"
   }
 ];
 
@@ -94,15 +95,18 @@ const locations = [
 button1.onclick = goStore;
 button2.onclick = goCave;
 button3.onclick = fightDragon;
+button4.onclick = goTown;
 
 function update(location) {
   monsterStats.style.display = "none";
   button1.innerText = location["button text"][0];
   button2.innerText = location["button text"][1];
   button3.innerText = location["button text"][2];
+  button4.innerText = location["button text"][3];
   button1.onclick = location["button functions"][0];
   button2.onclick = location["button functions"][1];
   button3.onclick = location["button functions"][2];
+  button4.onclick = location["button functions"][3];
   text.innerHTML = location.text;
 }
 
@@ -149,6 +153,17 @@ function buyWeapon() {
   }
 }
 
+function buySoldier() {
+  if (gold >= 100) {
+    gold -= 100;
+    hasSoldier = true;
+    goldText.innerText = gold;
+    text.innerText = "You have hired a soldier to assist you in battles.";
+  } else {
+    text.innerText = "You do not have enough gold to hire a soldier.";
+  }
+}
+
 function sellWeapon() {
   if (inventory.length > 1) {
     gold += 15;
@@ -182,16 +197,28 @@ function goFight() {
   monsterStats.style.display = "block";
   monsterName.innerText = monsters[fighting].name;
   monsterHealthText.innerText = monsterHealth;
+  if (hasSoldier) {
+    soldierHealthText.innerText = soldierHealth;
+  } else {
+    soldierHealthText.innerText = "N/A";
+  }
 }
 
 function attack() {
   text.innerText = "The " + monsters[fighting].name + " attacks.";
   text.innerText += " You attack it with your " + weapons[currentWeapon].name + ".";
   health -= getMonsterAttackValue(monsters[fighting].level);
-  if (isMonsterHit()) {
-    monsterHealth -= weapons[currentWeapon].power + Math.floor(Math.random() * xp) + 1;    
+  if (hasSoldier) {
+    text.innerText += " Your soldier also attacks the " + monsters[fighting].name + ".";
+    monsterHealth -= weapons[currentWeapon].power + Math.floor(Math.random() * xp) + 1 + 30;
+    soldierHealth -= getMonsterAttackValue(monsters[fighting].level);
+    soldierHealthText.innerText = soldierHealth;
   } else {
-    text.innerText += " You miss.";
+    if (isMonsterHit()) {
+      monsterHealth -= weapons[currentWeapon].power + Math.floor(Math.random() * xp) + 1;
+    } else {
+      text.innerText += " You miss.";
+    }
   }
   healthText.innerText = health;
   monsterHealthText.innerText = monsterHealth;
@@ -210,6 +237,22 @@ function attack() {
   }
 }
 
+function defend() {
+  text.innerText = "The " + monsters[fighting].name + " attacks, but your soldier blocks the attack.";
+  if (hasSoldier) {
+    soldierHealth -= getMonsterAttackValue(monsters[fighting].level) / 2;
+    soldierHealthText.innerText = soldierHealth;
+  } else {
+    health -= getMonsterAttackValue(monsters[fighting].level) / 2;
+    healthText.innerText = health;
+  }
+}
+
+function run() {
+  text.innerText = "You run away from the " + monsters[fighting].name + ".";
+  update(locations[0]);
+}
+
 function getMonsterAttackValue(level) {
   const hit = (level * 5) - (Math.floor(Math.random() * xp));
   console.log(hit);
@@ -218,10 +261,6 @@ function getMonsterAttackValue(level) {
 
 function isMonsterHit() {
   return Math.random() > .2 || health < 20;
-}
-
-function dodge() {
-  text.innerText = "You dodge the attack from the " + monsters[fighting].name;
 }
 
 function defeatMonster() {
@@ -246,43 +285,11 @@ function restart() {
   gold = 50;
   currentWeapon = 0;
   inventory = ["stick"];
+  hasSoldier = false;
+  soldierHealth = 100;
   goldText.innerText = gold;
   healthText.innerText = health;
   xpText.innerText = xp;
+  soldierHealthText.innerText = "N/A";
   goTown();
-}
-
-function easterEgg() {
-  update(locations[7]);
-}
-
-function pickTwo() {
-  pick(2);
-}
-
-function pickEight() {
-  pick(8);
-}
-
-function pick(guess) {
-  const numbers = [];
-  while (numbers.length < 10) {
-    numbers.push(Math.floor(Math.random() * 11));
-  }
-  text.innerText = "You picked " + guess + ". Here are the random numbers:\n";
-  for (let i = 0; i < 10; i++) {
-    text.innerText += numbers[i] + "\n";
-  }
-  if (numbers.includes(guess)) {
-    text.innerText += "Right! You win 20 gold!";
-    gold += 20;
-    goldText.innerText = gold;
-  } else {
-    text.innerText += "Wrong! You lose 10 health!";
-    health -= 10;
-    healthText.innerText = health;
-    if (health <= 0) {
-      lose();
-    }
-  }
 }

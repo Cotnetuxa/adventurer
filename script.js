@@ -1,12 +1,14 @@
 let xp = 0;
 let health = 100;
-let gold = 500;
+let gold = 50;
 let currentWeapon = 0;
 let fighting;
 let monsterHealth;
 let inventory = ["stick"];
 let hasSoldier = false;
 let soldierHealth = 100;
+let soldierLevel = 1;
+let soldierAttackPower = 30;
 
 const button1 = document.querySelector('#button1');
 const button2 = document.querySelector("#button2");
@@ -20,6 +22,7 @@ const monsterStats = document.querySelector("#monsterStats");
 const monsterName = document.querySelector("#monsterName");
 const monsterHealthText = document.querySelector("#monsterHealth");
 const soldierHealthText = document.querySelector("#soldierHealth");
+const inventoryList = document.querySelector("#inventory");
 
 const weapons = [
   { name: 'stick', power: 5 },
@@ -55,8 +58,8 @@ const locations = [
   },
   {
     name: "store",
-    "button text": ["Buy 10 health (10 gold)", "Buy weapon (30 gold)", "Buy soldier (100 gold)", "Go to town square"],
-    "button functions": [buyHealth, buyWeapon, buySoldier, goTown],
+    "button text": ["Buy 10 health (10 gold)", "Buy weapon (30 gold)", "Buy soldier (100 gold)", "Buy health potion (50 gold)", "Go to town square"],
+    "button functions": [buyHealth, buyWeapon, buySoldier, buyHealthPotion, goTown],
     text: "You enter the store."
   },
   {
@@ -68,8 +71,14 @@ const locations = [
   {
     name: "fight",
     "button text": ["Attack", "Defend", "Run"],
-    "button functions": [attack, defend, goTown],
+    "button functions": [attack, defend, run],
     text: "You are fighting a monster."
+  },
+  {
+    name: "fight-dragon",
+    "button text": ["Attack", "Defend", "Soldier Attack"],
+    "button functions": [attackDragon, defendDragon, soldierAttack],
+    text: "You are fighting the dragon."
   },
   {
     name: "kill monster",
@@ -108,6 +117,7 @@ function update(location) {
   button3.onclick = location["button functions"][2];
   button4.onclick = location["button functions"][3];
   text.innerHTML = location.text;
+  updateInventory();
 }
 
 function goTown() {
@@ -142,7 +152,7 @@ function buyWeapon() {
       let newWeapon = weapons[currentWeapon].name;
       text.innerText = "You now have a " + newWeapon + ".";
       inventory.push(newWeapon);
-      text.innerText += " In your inventory you have: " + inventory;
+      updateInventory();
     } else {
       text.innerText = "You do not have enough gold to buy a weapon.";
     }
@@ -157,10 +167,24 @@ function buySoldier() {
   if (gold >= 100) {
     gold -= 100;
     hasSoldier = true;
+    soldierLevel = 1;
+    soldierHealth = 100;
     goldText.innerText = gold;
     text.innerText = "You have hired a soldier to assist you in battles.";
   } else {
     text.innerText = "You do not have enough gold to hire a soldier.";
+  }
+}
+
+function buyHealthPotion() {
+  if (gold >= 50) {
+    gold -= 50;
+    inventory.push("health potion");
+    goldText.innerText = gold;
+    text.innerText = "You bought a health potion and added it to your inventory.";
+    updateInventory();
+  } else {
+    text.innerText = "You do not have enough gold to buy a health potion.";
   }
 }
 
@@ -170,7 +194,7 @@ function sellWeapon() {
     goldText.innerText = gold;
     let currentWeapon = inventory.shift();
     text.innerText = "You sold a " + currentWeapon + ".";
-    text.innerText += " In your inventory you have: " + inventory;
+    updateInventory();
   } else {
     text.innerText = "Don't sell your only weapon!";
   }
@@ -188,11 +212,24 @@ function fightBeast() {
 
 function fightDragon() {
   fighting = 2;
-  goFight();
+  goFightDragon();
 }
 
 function goFight() {
   update(locations[3]);
+  monsterHealth = monsters[fighting].health;
+  monsterStats.style.display = "block";
+  monsterName.innerText = monsters[fighting].name;
+  monsterHealthText.innerText = monsterHealth;
+  if (hasSoldier) {
+    soldierHealthText.innerText = soldierHealth;
+  } else {
+    soldierHealthText.innerText = "N/A";
+  }
+}
+
+function goFightDragon() {
+  update(locations[4]);
   monsterHealth = monsters[fighting].health;
   monsterStats.style.display = "block";
   monsterName.innerText = monsters[fighting].name;
@@ -210,7 +247,7 @@ function attack() {
   health -= getMonsterAttackValue(monsters[fighting].level);
   if (hasSoldier) {
     text.innerText += " Your soldier also attacks the " + monsters[fighting].name + ".";
-    monsterHealth -= weapons[currentWeapon].power + Math.floor(Math.random() * xp) + 1 + 30;
+    monsterHealth -= weapons[currentWeapon].power + Math.floor(Math.random() * xp) + 1 + soldierAttackPower;
     soldierHealth -= getMonsterAttackValue(monsters[fighting].level);
     soldierHealthText.innerText = soldierHealth;
   } else {
@@ -234,6 +271,65 @@ function attack() {
   if (Math.random() <= .1 && inventory.length !== 1) {
     text.innerText += " Your " + inventory.pop() + " breaks.";
     currentWeapon--;
+    updateInventory();
+  }
+}
+
+function attackDragon() {
+  text.innerText = "The dragon attacks.";
+  text.innerText += " You attack it with your " + weapons[currentWeapon].name + ".";
+  health -= getMonsterAttackValue(monsters[fighting].level);
+  if (hasSoldier) {
+    text.innerText += " Your soldier also attacks the dragon.";
+    monsterHealth -= weapons[currentWeapon].power + Math.floor(Math.random() * xp) + 1 + soldierAttackPower;
+    soldierHealth -= getMonsterAttackValue(monsters[fighting].level);
+    soldierHealthText.innerText = soldierHealth;
+  } else {
+    if (isMonsterHit()) {
+      monsterHealth -= weapons[currentWeapon].power + Math.floor(Math.random() * xp) + 1;
+    } else {
+      text.innerText += " You miss.";
+    }
+  }
+  healthText.innerText = health;
+  monsterHealthText.innerText = monsterHealth;
+  if (health <= 0) {
+    lose();
+  } else if (monsterHealth <= 0) {
+    winGame();
+  }
+  if (Math.random() <= .1 && inventory.length !== 1) {
+    text.innerText += " Your " + inventory.pop() + " breaks.";
+    currentWeapon--;
+    updateInventory();
+  }
+}
+
+function defendDragon() {
+  text.innerText = "The dragon attacks, but you and your soldier defend.";
+  if (hasSoldier) {
+    soldierHealth -= getMonsterAttackValue(monsters[fighting].level) / 2;
+    health -= getMonsterAttackValue(monsters[fighting].level) / 2;
+    soldierHealthText.innerText = soldierHealth;
+    healthText.innerText = health;
+  } else {
+    health -= getMonsterAttackValue(monsters[fighting].level);
+    healthText.innerText = health;
+  }
+}
+
+function soldierAttack() {
+  text.innerText = "Your soldier attacks the dragon.";
+  monsterHealth -= soldierAttackPower;
+  soldierHealth -= getMonsterAttackValue(monsters[fighting].level);
+  soldierHealthText.innerText = soldierHealth;
+  monsterHealthText.innerText = monsterHealth;
+  if (monsterHealth <= 0) {
+    winGame();
+  } else if (soldierHealth <= 0) {
+    text.innerText += " Your soldier has fallen.";
+    hasSoldier = false;
+    soldierHealthText.innerText = "N/A";
   }
 }
 
@@ -268,15 +364,15 @@ function defeatMonster() {
   xp += monsters[fighting].level;
   goldText.innerText = gold;
   xpText.innerText = xp;
-  update(locations[4]);
-}
-
-function lose() {
   update(locations[5]);
 }
 
-function winGame() {
+function lose() {
   update(locations[6]);
+}
+
+function winGame() {
+  update(locations[7]);
 }
 
 function restart() {
@@ -287,9 +383,15 @@ function restart() {
   inventory = ["stick"];
   hasSoldier = false;
   soldierHealth = 100;
+  soldierLevel = 1;
   goldText.innerText = gold;
   healthText.innerText = health;
   xpText.innerText = xp;
   soldierHealthText.innerText = "N/A";
+  updateInventory();
   goTown();
+}
+
+function updateInventory() {
+  inventoryList.innerHTML = "Inventory: " + inventory.join(", ");
 }
